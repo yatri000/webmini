@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SmartHouse Pro</title>
+
+<style>
+:root {
+  --bg: #0a0f17;
+  --cold: #4fc3ff;
+  --warm: #ffb86b;
+  --card: rgba(255,255,255,0.05);
+  --text: #ffffff;
+  --muted: #b8c1d1;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: "Segoe UI", system-ui, sans-serif;
+  background:
+    radial-gradient(circle at left, rgba(79,195,255,0.12), transparent 40%),
+    radial-gradient(circle at right, rgba(255,184,107,0.15), transparent 40%),
+    var(--bg);
+  color: var(--text);
+}
+
+.container {
+  max-width: 420px;
+  margin: auto;
+  padding: 24px;
+}
+
+h1 {
+  font-size: 22px;
+  margin-bottom: 16px;
+}
+
+.step {
+  display: none;
+}
+
+.step.active {
+  display: block;
+}
+
+.card {
+  background: var(--card);
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 12px;
+  border: 1px solid rgba(255,255,255,0.08);
+}
+
+.option {
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.option.active {
+  border-color: var(--cold);
+  box-shadow: 0 0 12px rgba(79,195,255,0.4);
+}
+
+.btn {
+  width: 100%;
+  margin-top: 20px;
+  padding: 14px;
+  border-radius: 14px;
+  border: none;
+  background: linear-gradient(135deg, var(--cold), #3b82f6);
+  color: #fff;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+input, textarea {
+  width: 100%;
+  padding: 12px;
+  border-radius: 12px;
+  border: none;
+  margin-bottom: 12px;
+  background: rgba(255,255,255,0.08);
+  color: #fff;
+}
+
+textarea {
+  resize: none;
+}
+</style>
+</head>
+
+<body>
+<div class="container">
+
+<!-- STEP 1 -->
+<div class="step active" id="step1">
+  <h1>Что хотите автоматизировать?</h1>
+
+  <div class="card option" data-value="Освещение">💡 Освещение</div>
+  <div class="card option" data-value="Климат">🌡 Климат</div>
+  <div class="card option" data-value="Безопасность">🛡 Безопасность</div>
+  <div class="card option" data-value="Сценарии">⚙️ Сценарии</div>
+  <div class="card option" data-value="Шторы">🪟 Шторы / жалюзи</div>
+
+  <button class="btn" onclick="nextStep()">Далее</button>
+</div>
+
+<!-- STEP 2 -->
+<div class="step" id="step2">
+  <h1>Где планируется установка?</h1>
+
+  <div class="card option single" data-value="Квартира">🏠 Квартира</div>
+  <div class="card option single" data-value="Дом">🏡 Частный дом</div>
+  <div class="card option single" data-value="Офис">🏢 Офис</div>
+  <div class="card option single" data-value="Есть система">🛠 Уже есть умный дом</div>
+
+  <textarea placeholder="Комментарий (необязательно)" id="comment"></textarea>
+
+  <button class="btn" onclick="nextStep()">Продолжить</button>
+</div>
+
+<!-- STEP 3 -->
+<div class="step" id="step3">
+  <h1>Как с вами связаться?</h1>
+
+  <input id="name" placeholder="Имя">
+  <input id="phone" placeholder="Телефон">
+
+  <div class="card option single" data-value="Телефон">📞 Звонок</div>
+  <div class="card option single" data-value="WhatsApp">💬 WhatsApp</div>
+  <div class="card option single" data-value="Telegram">🤖 Telegram</div>
+
+  <button class="btn" onclick="submitForm()">Отправить заявку</button>
+</div>
+
+<!-- STEP 4 -->
+<div class="step" id="step4">
+  <h1>✅ Заявка отправлена</h1>
+  <p>Мы свяжемся с вами в ближайшее время</p>
+  <button class="btn" onclick="closeApp()">Вернуться в Telegram</button>
+</div>
+
+</div>
+
+<script>
+const tg = window.Telegram.WebApp;
+tg.ready();
+
+let step = 1;
+let data = {
+  interests: [],
+  object: null,
+  comment: "",
+  name: "",
+  phone: "",
+  contact: ""
+};
+
+// auto name
+if (tg.initDataUnsafe?.user) {
+  document.getElementById("name").value =
+    tg.initDataUnsafe.user.first_name || "";
+}
+
+// option logic
+document.querySelectorAll(".option").forEach(el => {
+  el.onclick = () => {
+    if (el.classList.contains("single")) {
+      el.parentNode.querySelectorAll(".single").forEach(o => o.classList.remove("active"));
+      el.classList.add("active");
+    } else {
+      el.classList.toggle("active");
+    }
+  };
+});
+
+function nextStep() {
+  document.getElementById(`step${step}`).classList.remove("active");
+  step++;
+  document.getElementById(`step${step}`).classList.add("active");
+}
+
+function submitForm() {
+  data.interests = [...document.querySelectorAll("#step1 .active")].map(e => e.dataset.value);
+  data.object = document.querySelector("#step2 .active")?.dataset.value;
+  data.comment = document.getElementById("comment").value;
+  data.name = document.getElementById("name").value;
+  data.phone = document.getElementById("phone").value;
+  data.contact = document.querySelector("#step3 .active")?.dataset.value;
+
+  tg.sendData(JSON.stringify(data));
+  nextStep();
+}
+
+function closeApp() {
+  tg.close();
+}
+</script>
+
+</body>
+</html>
