@@ -58,28 +58,38 @@ h1 {
   box-shadow: 0 0 12px rgba(79,195,255,0.4);
 }
 
-textarea, input {
+/* INPUTS */
+input, textarea {
   width: 100%;
-  padding: 16px;
-  border-radius: 16px;
+  border-radius: 14px;
   border: none;
   background: rgba(255,255,255,0.08);
   color: #fff;
 }
 
-textarea.big {
-  height: calc(3 * 56px + 24px);
+input {
+  padding: 18px;
+  font-size: 18px;
+  margin-bottom: 14px;
+}
+
+textarea {
+  padding: 14px;
+  font-size: 15px;
   resize: none;
+  margin-top: 8px;
 }
 
-input.big {
-  height: 56px;
+/* комментарий уменьшен на треть */
+textarea.comment {
+  height: 90px;
 }
 
+/* BUTTONS */
 .btn {
   width: 100%;
+  margin-top: 14px;
   padding: 14px;
-  margin-top: 12px;
   border-radius: 14px;
   border: none;
   font-size: 16px;
@@ -94,7 +104,7 @@ input.big {
 .btn.secondary {
   background: transparent;
   color: var(--muted);
-  border: 1px solid rgba(255,255,255,0.15);
+  border: 1px solid rgba(255,255,255,0.18);
 }
 
 .btn:disabled {
@@ -113,8 +123,10 @@ input.big {
   <div class="card option" data-value="Освещение">💡 Освещение</div>
   <div class="card option" data-value="Климат">🌡 Климат</div>
   <div class="card option" data-value="Безопасность">🛡 Безопасность</div>
+  <div class="card option" data-value="Сценарии">⚙️ Сценарии</div>
+  <div class="card option" data-value="Шторы">🪟 Шторы / жалюзи</div>
 
-  <textarea id="comment1" class="big" placeholder="Комментарий (или опишите задачу)"></textarea>
+  <textarea id="comment1" class="comment" placeholder="Комментарий (по желанию)"></textarea>
 
   <button id="next1" class="btn primary" disabled onclick="nextStep()">Далее</button>
 </div>
@@ -126,8 +138,9 @@ input.big {
   <div class="card option single" data-value="Квартира">🏠 Квартира</div>
   <div class="card option single" data-value="Дом">🏡 Частный дом</div>
   <div class="card option single" data-value="Офис">🏢 Офис</div>
+  <div class="card option single" data-value="Есть система">🛠 Уже есть умный дом</div>
 
-  <textarea id="comment2" class="big" placeholder="Комментарий (этаж, стадия ремонта и т.п.)"></textarea>
+  <textarea id="comment2" class="comment" placeholder="Комментарий (этаж, стадия ремонта и т.п.)"></textarea>
 
   <button class="btn secondary" onclick="prevStep()">Назад</button>
   <button id="next2" class="btn primary" disabled onclick="nextStep()">Далее</button>
@@ -137,15 +150,15 @@ input.big {
 <div class="step" id="step3">
   <h1>Как с вами связаться?</h1>
 
-  <input id="name" class="big" placeholder="Имя">
-  <input id="phone" class="big" placeholder="Телефон">
+  <input id="name" placeholder="Имя">
+  <input id="phone" placeholder="Телефон">
 
-  <div class="card option multi" data-value="Телефон">📞 Звонок</div>
-  <div class="card option multi" data-value="WhatsApp">💬 WhatsApp</div>
-  <div class="card option multi" data-value="Telegram">🤖 Telegram</div>
+  <div class="card option" data-value="Телефон">📞 Звонок</div>
+  <div class="card option" data-value="WhatsApp">💬 WhatsApp</div>
+  <div class="card option" data-value="Telegram">🤖 Telegram</div>
 
   <button class="btn secondary" onclick="prevStep()">Назад</button>
-  <button id="send" class="btn primary" disabled onclick="submitForm()">Отправить</button>
+  <button id="send" class="btn primary" disabled onclick="submitForm()">Отправить заявку</button>
 </div>
 
 <!-- STEP 4 -->
@@ -166,12 +179,12 @@ tg.ready();
 
 let step = 1;
 
-// auto name
+// автоимя
 if (tg.initDataUnsafe?.user) {
   name.value = tg.initDataUnsafe.user.first_name || "";
 }
 
-// click options
+// клики по карточкам
 document.addEventListener("click", e => {
   const opt = e.target.closest(".option");
   if (!opt) return;
@@ -187,7 +200,7 @@ document.addEventListener("click", e => {
   validate();
 });
 
-// validation
+// валидация
 ["comment1","comment2","phone","name"].forEach(id => {
   document.getElementById(id)?.addEventListener("input", validate);
 });
@@ -209,7 +222,7 @@ function validate() {
   );
 }
 
-// navigation
+// навигация
 function nextStep() {
   document.getElementById(`step${step}`).classList.remove("active");
   step++;
@@ -222,7 +235,7 @@ function prevStep() {
   document.getElementById(`step${step}`).classList.add("active");
 }
 
-// submit
+// отправка
 function submitForm() {
   const data = {
     interests: [...document.querySelectorAll("#step1 .option.active")].map(e=>e.dataset.value),
@@ -237,7 +250,9 @@ function submitForm() {
   nextStep();
 }
 
-function closeApp() { tg.close(); }
+function closeApp() {
+  tg.close();
+}
 </script>
 
 </body>
