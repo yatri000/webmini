@@ -59,6 +59,8 @@ h1 {
 .option {
   cursor: pointer;
   transition: 0.2s;
+  touch-action: manipulation;
+  user-select: none;
 }
 
 .option.active {
@@ -119,7 +121,7 @@ textarea {
   <div class="card option single" data-value="Офис">🏢 Офис</div>
   <div class="card option single" data-value="Есть система">🛠 Уже есть умный дом</div>
 
-  <textarea placeholder="Комментарий (необязательно)" id="comment"></textarea>
+  <textarea id="comment" placeholder="Комментарий (необязательно)"></textarea>
 
   <button class="btn" onclick="nextStep()">Продолжить</button>
 </div>
@@ -148,50 +150,62 @@ textarea {
 </div>
 
 <script>
-const tg = window.Telegram.WebApp;
+/* ---------- SAFE TELEGRAM FALLBACK ---------- */
+const tg = window.Telegram?.WebApp || {
+  ready: () => {},
+  sendData: (d) => {
+    console.log("BROWSER MODE DATA:", d);
+    alert("Данные отправлены (browser mode). Смотри console.");
+  },
+  close: () => {
+    alert("Закрытие WebApp (browser mode)");
+  }
+};
 tg.ready();
 
+/* ---------- STATE ---------- */
 let step = 1;
-let data = {
-  interests: [],
-  object: null,
-  comment: "",
-  name: "",
-  phone: "",
-  contact: ""
-};
 
-// auto name
+/* ---------- AUTO NAME ---------- */
 if (tg.initDataUnsafe?.user) {
   document.getElementById("name").value =
     tg.initDataUnsafe.user.first_name || "";
 }
 
-// option logic
-document.querySelectorAll(".option").forEach(el => {
-  el.onclick = () => {
-    if (el.classList.contains("single")) {
-      el.parentNode.querySelectorAll(".single").forEach(o => o.classList.remove("active"));
-      el.classList.add("active");
-    } else {
-      el.classList.toggle("active");
-    }
-  };
+/* ---------- OPTION HANDLER (EVENT DELEGATION) ---------- */
+document.addEventListener("click", (e) => {
+  const option = e.target.closest(".option");
+  if (!option) return;
+
+  if (option.classList.contains("single")) {
+    option
+      .parentElement
+      .querySelectorAll(".option.single")
+      .forEach(el => el.classList.remove("active"));
+    option.classList.add("active");
+  } else {
+    option.classList.toggle("active");
+  }
 });
 
+/* ---------- STEP CONTROL ---------- */
 function nextStep() {
   document.getElementById(`step${step}`).classList.remove("active");
   step++;
   document.getElementById(`step${step}`).classList.add("active");
 }
 
+/* ---------- SUBMIT ---------- */
 function submitForm() {
-  data.interests = [...document.querySelectorAll("#step1 .active")].map(e => e.dataset.value);
-  data.object = document.querySelector("#step2 .active")?.dataset.value;
-  data.comment = document.getElementById("comment").value;
-  data.name = document.getElementById("name").value;
-  data.phone = document.getElementById("phone").value;
-  data.contact = document.querySelector("#step3 .active")?.dataset.value;
+  const data = {
+    interests: [...document.querySelectorAll("#step1 .option.active")]
+      .map(e => e.dataset.value),
+    object: document.querySelector("#step2 .option.active")?.dataset.value,
+    comment: document.getElementById("comment").value,
+    name: document.getElementById("name").value,
+    phone: document.getElementById("phone").value,
+    contact: document.querySelector("#step3 .option.active")?.dataset.value
+  };
 
   tg.sendData(JSON.stringify(data));
   nextStep();
