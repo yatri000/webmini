@@ -3,93 +3,312 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Phone Mask</title>
+<title>SmartHouse Pro</title>
 
 <style>
+:root {
+  --bg: #0a0f17;
+  --cold: #4fc3ff;
+  --card: rgba(255,255,255,0.05);
+  --text: #ffffff;
+  --muted: #b8c1d1;
+  --error: #ff4d4f;
+}
+
+* { box-sizing: border-box; }
+
 body {
-  background:#0a0f17;
-  color:#fff;
-  font-family:system-ui;
-  padding:40px;
+  margin: 0;
+  font-family: "Segoe UI", system-ui, sans-serif;
+  background:
+    radial-gradient(circle at left, rgba(79,195,255,0.12), transparent 40%),
+    var(--bg);
+  color: var(--text);
+}
+
+.container {
+  max-width: 420px;
+  margin: auto;
+  padding: 24px;
+}
+
+h1 {
+  font-size: 22px;
+  margin-bottom: 16px;
+}
+
+.step { display: none; }
+.step.active { display: block; }
+
+.card {
+  background: var(--card);
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 12px;
+  border: 1px solid rgba(255,255,255,0.08);
+}
+
+.option {
+  cursor: pointer;
+  user-select: none;
+  touch-action: manipulation;
+}
+
+.option.active {
+  border-color: var(--cold);
+  box-shadow: 0 0 12px rgba(79,195,255,0.4);
+}
+
+/* INPUTS */
+input, textarea {
+  width: 100%;
+  border-radius: 14px;
+  border: none;
+  background: rgba(255,255,255,0.08);
+  color: #fff;
 }
 
 input {
-  width:100%;
-  padding:18px;
-  font-size:20px;
-  border-radius:14px;
-  border:none;
-  background:rgba(255,255,255,.08);
-  color:#fff;
+  padding: 18px;
+  font-size: 20px;
+  margin-bottom: 14px;
 }
 
-button {
-  margin-top:20px;
-  padding:14px;
-  width:100%;
-  border-radius:14px;
-  border:none;
-  background:#4fc3ff;
-  font-size:16px;
-  font-weight:600;
+textarea {
+  padding: 14px;
+  font-size: 15px;
+  resize: none;
+  margin-top: 8px;
 }
-button:disabled {opacity:.4}
+
+textarea.comment {
+  height: 90px;
+}
+
+/* VALIDATION */
+input.error { outline: 2px solid var(--error); }
+input.valid { outline: 2px solid var(--cold); }
+
+/* BUTTONS */
+.btn {
+  width: 100%;
+  margin-top: 14px;
+  padding: 14px;
+  border-radius: 14px;
+  border: none;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.btn.primary {
+  background: linear-gradient(135deg, var(--cold), #3b82f6);
+  color: #fff;
+}
+
+.btn.secondary {
+  background: transparent;
+  color: var(--muted);
+  border: 1px solid rgba(255,255,255,0.18);
+}
+
+.btn:disabled { opacity: 0.4; }
 </style>
 </head>
 
 <body>
+<div class="container">
 
-<input id="phone" type="tel" placeholder="+7 ___ _______">
-<button id="send" disabled>Отправить</button>
+<!-- STEP 1 -->
+<div class="step active" id="step1">
+  <h1>Что хотите автоматизировать?</h1>
+
+  <div class="card option" data-value="Освещение">💡 Освещение</div>
+  <div class="card option" data-value="Климат">🌡 Климат</div>
+  <div class="card option" data-value="Безопасность">🛡 Безопасность</div>
+  <div class="card option" data-value="Сценарии">⚙️ Сценарии</div>
+  <div class="card option" data-value="Шторы">🪟 Шторы / жалюзи</div>
+
+  <textarea id="comment1" class="comment" placeholder="Комментарий (по желанию)"></textarea>
+
+  <button id="next1" class="btn primary" disabled onclick="nextStep()">Далее</button>
+</div>
+
+<!-- STEP 2 -->
+<div class="step" id="step2">
+  <h1>Где планируется установка?</h1>
+
+  <div class="card option single" data-value="Квартира">🏠 Квартира</div>
+  <div class="card option single" data-value="Дом">🏡 Частный дом</div>
+  <div class="card option single" data-value="Офис">🏢 Офис</div>
+  <div class="card option single" data-value="Есть система">🛠 Уже есть умный дом</div>
+
+  <textarea id="comment2" class="comment" placeholder="Комментарий (этаж, стадия ремонта и т.п.)"></textarea>
+
+  <button class="btn secondary" onclick="prevStep()">Назад</button>
+  <button id="next2" class="btn primary" disabled onclick="nextStep()">Далее</button>
+</div>
+
+<!-- STEP 3 -->
+<div class="step" id="step3">
+  <h1>Как с вами связаться?</h1>
+
+  <input id="name" placeholder="Имя">
+  <input id="phone" placeholder="+7 ___ _______" inputmode="numeric">
+
+  <div class="card option" data-value="Телефон">📞 Звонок</div>
+  <div class="card option" data-value="WhatsApp">💬 WhatsApp</div>
+  <div class="card option" data-value="Telegram">🤖 Telegram</div>
+
+  <button class="btn secondary" onclick="prevStep()">Назад</button>
+  <button id="send" class="btn primary" disabled onclick="submitForm()">Отправить заявку</button>
+</div>
+
+<!-- STEP 4 -->
+<div class="step" id="step4">
+  <h1>✅ Заявка отправлена</h1>
+  <button class="btn primary" onclick="closeApp()">Вернуться в Telegram</button>
+</div>
+
+</div>
 
 <script>
-const phone = document.getElementById("phone");
-const send  = document.getElementById("send");
+/* ---------- TELEGRAM SAFE ---------- */
+const tg = window.Telegram?.WebApp || {
+  ready(){},
+  sendData(d){ console.log("BROWSER MODE DATA:", d); },
+  close(){}
+};
+tg.ready();
 
-let digits = ""; // ХРАНИМ ТОЛЬКО ЦИФРЫ (без +7)
+let step = 1;
+
+/* ---------- AUTO NAME ---------- */
+const name = document.getElementById("name");
+const phone = document.getElementById("phone");
+const next1 = document.getElementById("next1");
+const next2 = document.getElementById("next2");
+const send  = document.getElementById("send");
+const comment1 = document.getElementById("comment1");
+const comment2 = document.getElementById("comment2");
+
+if (tg.initDataUnsafe?.user) {
+  name.value = tg.initDataUnsafe.user.first_name || "";
+}
+
+/* ---------- OPTION HANDLER ---------- */
+document.addEventListener("click", e => {
+  const opt = e.target.closest(".option");
+  if (!opt) return;
+
+  if (opt.classList.contains("single")) {
+    opt.parentElement.querySelectorAll(".option.single")
+      .forEach(o => o.classList.remove("active"));
+    opt.classList.add("active");
+  } else {
+    opt.classList.toggle("active");
+  }
+  validate();
+});
+
+/* ---------- NAME ---------- */
+name.addEventListener("input", () => {
+  name.value = name.value.replace(/[^a-zA-Zа-яА-ЯёЁ\s-]/g, "");
+  validate();
+});
+
+function validateName() {
+  return /^[a-zA-Zа-яА-ЯёЁ\s-]{2,}$/.test(name.value.trim());
+}
+
+/* ---------- PHONE MASK (ИСПРАВЛЕННАЯ) ---------- */
+let phoneDigits = "";
 
 phone.addEventListener("focus", () => {
-  if (!phone.value) {
-    phone.value = "+7 ";
-  }
+  if (!phone.value) phone.value = "+7 ";
 });
 
 phone.addEventListener("input", () => {
-  // берём только цифры, кроме первой 7
   let raw = phone.value.replace(/\D/g, "");
 
-  // убираем ведущую 7 (она всегда есть)
+  // убираем ведущую 7
   if (raw.startsWith("7")) raw = raw.slice(1);
 
-  // максимум 10 цифр
   raw = raw.slice(0, 10);
-  digits = raw;
+  phoneDigits = raw;
 
-  // собираем формат
-  let result = "+7 ";
-
-  if (digits.length <= 3) {
-    result += digits;
+  let formatted = "+7 ";
+  if (phoneDigits.length <= 3) {
+    formatted += phoneDigits;
   } else {
-    result += digits.slice(0,3) + " " + digits.slice(3);
+    formatted += phoneDigits.slice(0,3) + " " + phoneDigits.slice(3);
   }
 
-  phone.value = result;
+  phone.value = formatted;
 
-  // если всё введено — блокируем ввод
-  if (digits.length === 10) {
-    phone.blur(); // закрывает клавиатуру
+  if (phoneDigits.length === 10) {
+    setTimeout(() => phone.blur(), 50);
   }
 
-  send.disabled = digits.length !== 10;
+  validate();
 });
 
-// защита от удаления +7
-phone.addEventListener("keydown", (e) => {
+// защита "+7 "
+phone.addEventListener("keydown", e => {
   if (phone.selectionStart <= 3 && (e.key === "Backspace" || e.key === "Delete")) {
     e.preventDefault();
   }
 });
+
+function validatePhone() {
+  return phoneDigits.length === 10;
+}
+
+/* ---------- VALIDATION ---------- */
+function validate() {
+  next1.disabled = !(
+    document.querySelector("#step1 .option.active") ||
+    comment1.value.trim()
+  );
+
+  next2.disabled = !(
+    document.querySelector("#step2 .option.active") ||
+    comment2.value.trim()
+  );
+
+  send.disabled = !(
+    validateName() &&
+    validatePhone() &&
+    document.querySelectorAll("#step3 .option.active").length
+  );
+}
+
+/* ---------- NAVIGATION ---------- */
+function nextStep() {
+  document.getElementById(`step${step}`).classList.remove("active");
+  step++;
+  document.getElementById(`step${step}`).classList.add("active");
+}
+
+function prevStep() {
+  document.getElementById(`step${step}`).classList.remove("active");
+  step--;
+  document.getElementById(`step${step}`).classList.add("active");
+}
+
+/* ---------- SUBMIT ---------- */
+function submitForm() {
+  tg.sendData(JSON.stringify({
+    interests: [...document.querySelectorAll("#step1 .option.active")].map(e=>e.dataset.value),
+    object: document.querySelector("#step2 .option.active")?.dataset.value,
+    comments: [comment1.value, comment2.value].filter(Boolean),
+    name: name.value.trim(),
+    phone: "+7 " + phoneDigits.slice(0,3) + " " + phoneDigits.slice(3),
+    contacts: [...document.querySelectorAll("#step3 .option.active")].map(e=>e.dataset.value)
+  }));
+  nextStep();
+}
+
+function closeApp(){ tg.close(); }
 </script>
 
 </body>
