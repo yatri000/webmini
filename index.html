@@ -9,22 +9,18 @@
 :root {
   --bg: #0a0f17;
   --cold: #4fc3ff;
-  --warm: #ffb86b;
   --card: rgba(255,255,255,0.05);
   --text: #ffffff;
   --muted: #b8c1d1;
 }
 
-* {
-  box-sizing: border-box;
-}
+* { box-sizing: border-box; }
 
 body {
   margin: 0;
   font-family: "Segoe UI", system-ui, sans-serif;
   background:
     radial-gradient(circle at left, rgba(79,195,255,0.12), transparent 40%),
-    radial-gradient(circle at right, rgba(255,184,107,0.15), transparent 40%),
     var(--bg);
   color: var(--text);
 }
@@ -40,13 +36,8 @@ h1 {
   margin-bottom: 16px;
 }
 
-.step {
-  display: none;
-}
-
-.step.active {
-  display: block;
-}
+.step { display: none; }
+.step.active { display: block; }
 
 .card {
   background: var(--card);
@@ -58,9 +49,8 @@ h1 {
 
 .option {
   cursor: pointer;
-  transition: 0.2s;
-  touch-action: manipulation;
   user-select: none;
+  touch-action: manipulation;
 }
 
 .option.active {
@@ -68,30 +58,47 @@ h1 {
   box-shadow: 0 0 12px rgba(79,195,255,0.4);
 }
 
-.btn {
+textarea, input {
   width: 100%;
-  margin-top: 20px;
-  padding: 14px;
-  border-radius: 14px;
+  padding: 16px;
+  border-radius: 16px;
   border: none;
-  background: linear-gradient(135deg, var(--cold), #3b82f6);
-  color: #fff;
-  font-size: 16px;
-  font-weight: 600;
-}
-
-input, textarea {
-  width: 100%;
-  padding: 12px;
-  border-radius: 12px;
-  border: none;
-  margin-bottom: 12px;
   background: rgba(255,255,255,0.08);
   color: #fff;
 }
 
-textarea {
+textarea.big {
+  height: calc(3 * 56px + 24px);
   resize: none;
+}
+
+input.big {
+  height: 56px;
+}
+
+.btn {
+  width: 100%;
+  padding: 14px;
+  margin-top: 12px;
+  border-radius: 14px;
+  border: none;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.btn.primary {
+  background: linear-gradient(135deg, var(--cold), #3b82f6);
+  color: #fff;
+}
+
+.btn.secondary {
+  background: transparent;
+  color: var(--muted);
+  border: 1px solid rgba(255,255,255,0.15);
+}
+
+.btn:disabled {
+  opacity: 0.4;
 }
 </style>
 </head>
@@ -106,10 +113,10 @@ textarea {
   <div class="card option" data-value="Освещение">💡 Освещение</div>
   <div class="card option" data-value="Климат">🌡 Климат</div>
   <div class="card option" data-value="Безопасность">🛡 Безопасность</div>
-  <div class="card option" data-value="Сценарии">⚙️ Сценарии</div>
-  <div class="card option" data-value="Шторы">🪟 Шторы / жалюзи</div>
 
-  <button class="btn" onclick="nextStep()">Далее</button>
+  <textarea id="comment1" class="big" placeholder="Комментарий (или опишите задачу)"></textarea>
+
+  <button id="next1" class="btn primary" disabled onclick="nextStep()">Далее</button>
 </div>
 
 <!-- STEP 2 -->
@@ -119,101 +126,118 @@ textarea {
   <div class="card option single" data-value="Квартира">🏠 Квартира</div>
   <div class="card option single" data-value="Дом">🏡 Частный дом</div>
   <div class="card option single" data-value="Офис">🏢 Офис</div>
-  <div class="card option single" data-value="Есть система">🛠 Уже есть умный дом</div>
 
-  <textarea id="comment" placeholder="Комментарий (необязательно)"></textarea>
+  <textarea id="comment2" class="big" placeholder="Комментарий (этаж, стадия ремонта и т.п.)"></textarea>
 
-  <button class="btn" onclick="nextStep()">Продолжить</button>
+  <button class="btn secondary" onclick="prevStep()">Назад</button>
+  <button id="next2" class="btn primary" disabled onclick="nextStep()">Далее</button>
 </div>
 
 <!-- STEP 3 -->
 <div class="step" id="step3">
   <h1>Как с вами связаться?</h1>
 
-  <input id="name" placeholder="Имя">
-  <input id="phone" placeholder="Телефон">
+  <input id="name" class="big" placeholder="Имя">
+  <input id="phone" class="big" placeholder="Телефон">
 
-  <div class="card option single" data-value="Телефон">📞 Звонок</div>
-  <div class="card option single" data-value="WhatsApp">💬 WhatsApp</div>
-  <div class="card option single" data-value="Telegram">🤖 Telegram</div>
+  <div class="card option multi" data-value="Телефон">📞 Звонок</div>
+  <div class="card option multi" data-value="WhatsApp">💬 WhatsApp</div>
+  <div class="card option multi" data-value="Telegram">🤖 Telegram</div>
 
-  <button class="btn" onclick="submitForm()">Отправить заявку</button>
+  <button class="btn secondary" onclick="prevStep()">Назад</button>
+  <button id="send" class="btn primary" disabled onclick="submitForm()">Отправить</button>
 </div>
 
 <!-- STEP 4 -->
 <div class="step" id="step4">
   <h1>✅ Заявка отправлена</h1>
-  <p>Мы свяжемся с вами в ближайшее время</p>
-  <button class="btn" onclick="closeApp()">Вернуться в Telegram</button>
+  <button class="btn primary" onclick="closeApp()">Вернуться в Telegram</button>
 </div>
 
 </div>
 
 <script>
-/* ---------- SAFE TELEGRAM FALLBACK ---------- */
 const tg = window.Telegram?.WebApp || {
   ready: () => {},
-  sendData: (d) => {
-    console.log("BROWSER MODE DATA:", d);
-    alert("Данные отправлены (browser mode). Смотри console.");
-  },
-  close: () => {
-    alert("Закрытие WebApp (browser mode)");
-  }
+  sendData: d => console.log("DATA:", d),
+  close: () => {}
 };
 tg.ready();
 
-/* ---------- STATE ---------- */
 let step = 1;
 
-/* ---------- AUTO NAME ---------- */
+// auto name
 if (tg.initDataUnsafe?.user) {
-  document.getElementById("name").value =
-    tg.initDataUnsafe.user.first_name || "";
+  name.value = tg.initDataUnsafe.user.first_name || "";
 }
 
-/* ---------- OPTION HANDLER (EVENT DELEGATION) ---------- */
-document.addEventListener("click", (e) => {
-  const option = e.target.closest(".option");
-  if (!option) return;
+// click options
+document.addEventListener("click", e => {
+  const opt = e.target.closest(".option");
+  if (!opt) return;
 
-  if (option.classList.contains("single")) {
-    option
-      .parentElement
-      .querySelectorAll(".option.single")
-      .forEach(el => el.classList.remove("active"));
-    option.classList.add("active");
+  if (opt.classList.contains("single")) {
+    opt.parentElement.querySelectorAll(".option.single")
+      .forEach(o => o.classList.remove("active"));
+    opt.classList.add("active");
   } else {
-    option.classList.toggle("active");
+    opt.classList.toggle("active");
   }
+
+  validate();
 });
 
-/* ---------- STEP CONTROL ---------- */
+// validation
+["comment1","comment2","phone","name"].forEach(id => {
+  document.getElementById(id)?.addEventListener("input", validate);
+});
+
+function validate() {
+  next1.disabled = !(
+    document.querySelector("#step1 .option.active") ||
+    comment1.value.trim()
+  );
+
+  next2.disabled = !(
+    document.querySelector("#step2 .option.active") ||
+    comment2.value.trim()
+  );
+
+  send.disabled = !(
+    phone.value.trim() &&
+    document.querySelectorAll("#step3 .option.active").length
+  );
+}
+
+// navigation
 function nextStep() {
   document.getElementById(`step${step}`).classList.remove("active");
   step++;
   document.getElementById(`step${step}`).classList.add("active");
 }
 
-/* ---------- SUBMIT ---------- */
+function prevStep() {
+  document.getElementById(`step${step}`).classList.remove("active");
+  step--;
+  document.getElementById(`step${step}`).classList.add("active");
+}
+
+// submit
 function submitForm() {
   const data = {
-    interests: [...document.querySelectorAll("#step1 .option.active")]
-      .map(e => e.dataset.value),
+    interests: [...document.querySelectorAll("#step1 .option.active")].map(e=>e.dataset.value),
     object: document.querySelector("#step2 .option.active")?.dataset.value,
-    comment: document.getElementById("comment").value,
-    name: document.getElementById("name").value,
-    phone: document.getElementById("phone").value,
-    contact: document.querySelector("#step3 .option.active")?.dataset.value
+    comments: [comment1.value, comment2.value].filter(Boolean),
+    name: name.value,
+    phone: phone.value,
+    contacts: [...document.querySelectorAll("#step3 .option.active")].map(e=>e.dataset.value)
   };
 
   tg.sendData(JSON.stringify(data));
   nextStep();
 }
 
-function closeApp() {
-  tg.close();
-}
+function closeApp() { tg.close(); }
 </script>
 
 </body>
