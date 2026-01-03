@@ -12,6 +12,7 @@
   --card: rgba(255,255,255,0.05);
   --text: #ffffff;
   --muted: #b8c1d1;
+  --error: #ff4d4f;
 }
 
 * { box-sizing: border-box; }
@@ -69,7 +70,7 @@ input, textarea {
 
 input {
   padding: 18px;
-  font-size: 18px;
+  font-size: 20px;
   margin-bottom: 14px;
 }
 
@@ -80,9 +81,17 @@ textarea {
   margin-top: 8px;
 }
 
-/* комментарий уменьшен на треть */
 textarea.comment {
   height: 90px;
+}
+
+/* VALIDATION */
+input.error {
+  outline: 2px solid var(--error);
+}
+
+input.valid {
+  outline: 2px solid var(--cold);
 }
 
 /* BUTTONS */
@@ -151,7 +160,7 @@ textarea.comment {
   <h1>Как с вами связаться?</h1>
 
   <input id="name" placeholder="Имя">
-  <input id="phone" placeholder="Телефон">
+  <input id="phone" placeholder="+7XXXXXXXXXX или 8XXXXXXXXXX">
 
   <div class="card option" data-value="Телефон">📞 Звонок</div>
   <div class="card option" data-value="WhatsApp">💬 WhatsApp</div>
@@ -170,21 +179,23 @@ textarea.comment {
 </div>
 
 <script>
+/* ---------- TELEGRAM SAFE ---------- */
 const tg = window.Telegram?.WebApp || {
   ready: () => {},
-  sendData: d => console.log("DATA:", d),
+  sendData: d => console.log("BROWSER MODE DATA:", d),
   close: () => {}
 };
 tg.ready();
 
+/* ---------- STATE ---------- */
 let step = 1;
 
-// автоимя
+/* ---------- AUTO NAME ---------- */
 if (tg.initDataUnsafe?.user) {
   name.value = tg.initDataUnsafe.user.first_name || "";
 }
 
-// клики по карточкам
+/* ---------- OPTION HANDLER ---------- */
 document.addEventListener("click", e => {
   const opt = e.target.closest(".option");
   if (!opt) return;
@@ -200,11 +211,53 @@ document.addEventListener("click", e => {
   validate();
 });
 
-// валидация
-["comment1","comment2","phone","name"].forEach(id => {
-  document.getElementById(id)?.addEventListener("input", validate);
+/* ---------- NAME VALIDATION ---------- */
+function validateName() {
+  const value = name.value.trim();
+  const ok = /^[a-zA-Zа-яА-ЯёЁ\s-]{2,}$/.test(value);
+
+  name.classList.toggle("error", value && !ok);
+  name.classList.toggle("valid", ok);
+
+  return ok;
+}
+
+/* ---------- PHONE MASK + VALIDATION ---------- */
+function validatePhone() {
+  let digits = phone.value.replace(/\D/g, "");
+
+  if (digits.startsWith("7")) {
+    phone.value = "+7" + digits.slice(1);
+  } else if (digits.startsWith("8")) {
+    phone.value = "8" + digits.slice(1);
+  }
+
+  const ok =
+    /^8\d{10}$/.test(phone.value) ||
+    /^\+7\d{10}$/.test(phone.value);
+
+  phone.classList.toggle("error", phone.value && !ok);
+  phone.classList.toggle("valid", ok);
+
+  return ok;
+}
+
+/* ---------- INPUT EVENTS ---------- */
+["comment1","comment2"].forEach(id =>
+  document.getElementById(id).addEventListener("input", validate)
+);
+
+name.addEventListener("input", () => {
+  validateName();
+  validate();
 });
 
+phone.addEventListener("input", () => {
+  validatePhone();
+  validate();
+});
+
+/* ---------- VALIDATION ---------- */
 function validate() {
   next1.disabled = !(
     document.querySelector("#step1 .option.active") ||
@@ -217,12 +270,13 @@ function validate() {
   );
 
   send.disabled = !(
-    phone.value.trim() &&
+    validateName() &&
+    validatePhone() &&
     document.querySelectorAll("#step3 .option.active").length
   );
 }
 
-// навигация
+/* ---------- NAVIGATION ---------- */
 function nextStep() {
   document.getElementById(`step${step}`).classList.remove("active");
   step++;
@@ -235,15 +289,15 @@ function prevStep() {
   document.getElementById(`step${step}`).classList.add("active");
 }
 
-// отправка
+/* ---------- SUBMIT ---------- */
 function submitForm() {
   const data = {
-    interests: [...document.querySelectorAll("#step1 .option.active")].map(e=>e.dataset.value),
+    interests: [...document.querySelectorAll("#step1 .option.active")].map(e => e.dataset.value),
     object: document.querySelector("#step2 .option.active")?.dataset.value,
     comments: [comment1.value, comment2.value].filter(Boolean),
-    name: name.value,
-    phone: phone.value,
-    contacts: [...document.querySelectorAll("#step3 .option.active")].map(e=>e.dataset.value)
+    name: name.value.trim(),
+    phone: phone.value.trim(),
+    contacts: [...document.querySelectorAll("#step3 .option.active")].map(e => e.dataset.value)
   };
 
   tg.sendData(JSON.stringify(data));
