@@ -305,10 +305,12 @@ function submitForm() {
     phone: "+7 " + phoneDigits.slice(0,3) + " " + phoneDigits.slice(3),
     contacts: [...document.querySelectorAll("#step3 .option.active")].map(e=>e.dataset.value)
   }));
-  nextStep();
+
+  // ❗ КРИТИЧНО
+  tg.close();
 }
 
-function closeApp(){ tg.close(); }
+//function closeApp(){ tg.close(); }
 </script>
 
 </body>
