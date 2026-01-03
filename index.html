@@ -209,13 +209,10 @@ name.addEventListener("input", () => {
 });
 
 function validateName() {
-  const ok = /^[a-zA-Zа-яА-ЯёЁ\s-]{2,}$/.test(name.value.trim());
-  name.classList.toggle("error", name.value && !ok);
-  name.classList.toggle("valid", ok);
-  return ok;
+  return /^[a-zA-Zа-яА-ЯёЁ\s-]{2,}$/.test(name.value.trim());
 }
 
-/* ---------- PHONE MASK + CURSOR + BLUR ---------- */
+/* ---------- PHONE MASK (FINAL, STABLE) ---------- */
 phone.addEventListener("focus", () => {
   if (!phone.value) phone.value = "+7 ";
 });
@@ -223,28 +220,31 @@ phone.addEventListener("focus", () => {
 phone.addEventListener("input", () => {
   let digits = phone.value.replace(/\D/g, "");
 
+  // всегда начинаем с 7
   if (!digits.startsWith("7")) digits = "7" + digits;
-  digits = digits.slice(0, 11);
+  digits = digits.slice(0, 11); // 7 + 10 цифр
 
   let formatted = "+7";
-  if (digits.length > 1) formatted += " " + digits.slice(1, 4);
-  if (digits.length > 4) formatted += " " + digits.slice(4, 11);
+
+  if (digits.length > 1) {
+    formatted += " " + digits.slice(1, 4);
+  }
+  if (digits.length > 4) {
+    formatted += " " + digits.slice(4, 11);
+  }
 
   phone.value = formatted;
 
-  // если номер полностью введён — убираем клавиатуру
+  // если номер полностью введён — убираем фокус
   if (digits.length === 11) {
-    phone.blur();
+    setTimeout(() => phone.blur(), 50);
   }
 
   validate();
 });
 
 function validatePhone() {
-  const ok = /^\+7 \d{3} \d{7}$/.test(phone.value);
-  phone.classList.toggle("error", phone.value && !ok);
-  phone.classList.toggle("valid", ok);
-  return ok;
+  return /^\+7 \d{3} \d{7}$/.test(phone.value);
 }
 
 /* ---------- VALIDATION ---------- */
